@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: true  # 允许后续 git push 使用 GITHUB_TOKEN
+          persist-credentials: true  # 允许 git 使用 token
 
       # 2️⃣ 读取文件并累加
       - name: Increment 9.txt
@@ -27,19 +27,22 @@ jobs:
           echo "$VALUE" > "$FILE"
           echo "New value: $VALUE"
 
-      # 3️⃣ 检查是否有更改再提交，避免无限循环
+      # 3️⃣ 配置 git 并提交更改（只有有更改才 commit）
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add 9.txt
-          # 如果有更改才 commit
           if ! git diff --cached --quiet; then
             git commit -m "Increment 9.txt via Action [skip ci]"
           else
             echo "No changes to commit"
           fi
 
-      # 4️⃣ Push 回仓库
+      # 4️⃣ Push 回仓库，使用 PAT
       - name: Push changes
-        run: git push -u origin master
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
+          git push -u origin master
