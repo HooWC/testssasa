@@ -1,50 +1,41 @@
-name: Increment 9.txt on push
+name: 自动递增计数器
 
 on:
   push:
-    branches:
-      - '*'  # 监听所有分支
+    branches: [ '*' ]
 
 jobs:
-  increment-file:
+  increment:
     runs-on: ubuntu-latest
+    
     steps:
-      # 1️⃣ Checkout 仓库
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-
-      # 2️⃣ 读取文件并累加
-      - name: Increment 9.txt
-        run: |
-          FILE=9.txt
-          if [ ! -f "$FILE" ]; then
-            echo "0" > "$FILE"
-          fi
-          VALUE=$(cat "$FILE")
-          VALUE=$((VALUE + 1))
-          echo "$VALUE" > "$FILE"
-          echo "New value: $VALUE"
-
-      # 3️⃣ 配置 git 并提交
-      - name: Commit changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add 9.txt
-          if ! git diff --cached --quiet; then
-            git commit -m "Increment 9.txt via Action [skip ci]"
-          else
-            echo "No changes to commit"
-          fi
-
-      # 4️⃣ Push 回当前分支，使用 PAT
-      - name: Push changes
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-          BRANCH: ${{ github.ref_name }}
-        run: |
-          echo "Pushing to branch $BRANCH"
-          git remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git"
-          git push -u origin "$BRANCH"
+    - name: 检出代码
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: 读取当前计数
+      id: read_count
+      run: |
+        CURRENT_COUNT=$(cat 9.txt)
+        echo "当前计数: $CURRENT_COUNT"
+        NEW_COUNT=$((CURRENT_COUNT + 1))
+        echo "新计数: $NEW_COUNT"
+        echo "new_count=$NEW_COUNT" >> $GITHUB_OUTPUT
+        
+    - name: 更新计数文件
+      run: |
+        echo "${{ steps.read_count.outputs.new_count }}" > 9.txt
+        
+    - name: 提交更改
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add 9.txt
+        git diff --staged --quiet || git commit -m "自动递增计数器: ${{ steps.read_count.outputs.new_count }}"
+        
+    - name: 推送更改
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
