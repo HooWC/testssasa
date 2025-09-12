@@ -9,7 +9,7 @@ jobs:
   increment-file:
     runs-on: ubuntu-latest
     steps:
-      # 1️⃣ 拉取仓库
+      # 1️⃣ Checkout 仓库
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -37,6 +37,7 @@ jobs:
             git commit -m "Increment 9.txt via Action [skip ci]"
           else
             echo "No changes to commit"
+          fi
 
       # 4️⃣ Push 回当前分支，使用 PAT
       - name: Push changes
