@@ -1,0 +1,41 @@
+name: Increment 9.txt on push
+
+on:
+  push:
+    branches:
+      - main  # 或你想监听的分支
+
+jobs:
+  increment-file:
+    runs-on: ubuntu-latest
+    steps:
+      # 拉取仓库
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 读取文件并累加
+      - name: Increment 9.txt
+        run: |
+          FILE=9.txt
+          if [ ! -f $FILE ]; then
+            echo "0" > $FILE
+          fi
+          VALUE=$(cat $FILE)
+          VALUE=$((VALUE + 1))
+          echo $VALUE > $FILE
+          echo "New value: $VALUE"
+
+      # 配置 git 提交
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add 9.txt
+          git commit -m "Increment 9.txt via Action" || echo "No changes to commit"
+
+      # push 回仓库
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
