@@ -3,7 +3,7 @@ name: Increment 9.txt on push
 on:
   push:
     branches:
-      - '*'  # 只监听 main 分支
+      - '*'  # 监听所有分支
 
 jobs:
   increment-file:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: true  # 允许 git 使用 token
+          persist-credentials: true
 
       # 2️⃣ 读取文件并累加
       - name: Increment 9.txt
@@ -27,7 +27,7 @@ jobs:
           echo "$VALUE" > "$FILE"
           echo "New value: $VALUE"
 
-      # 3️⃣ 配置 git 并提交更改（只有有更改才 commit）
+      # 3️⃣ 配置 git 并提交
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
@@ -37,12 +37,13 @@ jobs:
             git commit -m "Increment 9.txt via Action [skip ci]"
           else
             echo "No changes to commit"
-          fi
 
-      # 4️⃣ Push 回仓库，使用 PAT
+      # 4️⃣ Push 回当前分支，使用 PAT
       - name: Push changes
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+          BRANCH: ${{ github.ref_name }}
         run: |
-          git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
-          git push -u origin master
+          echo "Pushing to branch $BRANCH"
+          git remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git"
+          git push -u origin "$BRANCH"
