@@ -3,7 +3,7 @@ name: Increment 9.txt on push
 on:
   push:
     branches:
-      - main  # 只监听 main 分支
+      - '*'  # 只监听 main 分支
 
 jobs:
   increment-file:
