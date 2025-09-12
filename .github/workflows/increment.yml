@@ -42,4 +42,4 @@ jobs:
 
       # 4️⃣ Push 回仓库
       - name: Push changes
-        run: git push origin master
+        run: git push -u origin master
